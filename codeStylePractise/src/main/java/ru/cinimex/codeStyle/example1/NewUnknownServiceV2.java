@@ -37,6 +37,7 @@ public class NewUnknownServiceV2 {
         List<Marketing> options = getAllOptions(orderInfo);
 
         // необходимые условия
+        // в logAllOptions и getAvailableOptions есть проверка на null
         OptionAvailability optionAvailability = getOptionAvailability(clientId).orElse(null);
         Boolean isUnpaidOverdueExist = clientInfoClient.getClientOverdue(clientId).getBody().getHasOverdue();
 
@@ -45,7 +46,7 @@ public class NewUnknownServiceV2 {
         List<Marketing> appliedOptions = getAppliedOptions();
 
         // обновление всех опций (учитываем сдвиги)
-        options = getOptionsWithShift(orderInfo, options);
+        options = getUpdatedAndShiftedOptions(orderInfo, options);
 
         List<Marketing> availableOptions = getAvailableOptions(options,
                 orderInfo, optionAvailability, isUnpaidOverdueExist, appliedOptions);
@@ -58,8 +59,8 @@ public class NewUnknownServiceV2 {
         return responseOptions;
     }
 
-    private List<Marketing> getOptionsWithShift(OrderInfo orderInfo,
-                                                List<Marketing> options) {
+    private List<Marketing> getUpdatedAndShiftedOptions(OrderInfo orderInfo,
+                                                        List<Marketing> options) {
         PaymentScheduleInfo paymentToShift = optionService.getAvailablePaymentForShift(orderInfo.getPaymentSchedules());
         Option optionShift = marketingClient.getOption(SHIFT.getTypeCode(), paymentToShift.getPaymentSum());
         log.info("optionShift: " + optionShift);
@@ -149,17 +150,17 @@ public class NewUnknownServiceV2 {
         List<Marketing> availabilityOptions = new ArrayList<>();
 
         if (optionAvailability != null || !isUnpaidOverdueExist) {
-            availabilityOptions.addAll(getOptions(options, orderInfo, optionAvailability, isUnpaidOverdueExist));
-            availabilityOptions.add(getSixMarketingOptions(orderInfo, optionAvailability, appliedOptions).orElse(null));
+            availabilityOptions.addAll(getOptionsForAvailable(options, orderInfo, optionAvailability, isUnpaidOverdueExist));
+            availabilityOptions.add(getSixMarketingOptionsForAvailable(orderInfo, optionAvailability, appliedOptions).orElse(null));
         }
 
         return availabilityOptions;
     }
 
-    private List<Marketing> getOptions(List<Marketing> options,
-                                       OrderInfo orderInfo,
-                                       OptionAvailability optionAvailability,
-                                       Boolean isUnpaidOverdueExist) {
+    private List<Marketing> getOptionsForAvailable(List<Marketing> options,
+                                                   OrderInfo orderInfo,
+                                                   OptionAvailability optionAvailability,
+                                                   Boolean isUnpaidOverdueExist) {
         // возможно, лучше вынести этот стрим-блок в отдельный метод, так как он весьма громоздкий
         List<Marketing> basicOptions = options.stream()
                 .peek(option -> log.info("isChosen: " + option.getIsChosen() + ", isAvailable: "
@@ -182,9 +183,9 @@ public class NewUnknownServiceV2 {
         return basicOptions;
     }
 
-    private Optional<Marketing> getSixMarketingOptions(OrderInfo orderInfo,
-                                                       OptionAvailability optionAvailability,
-                                                       List<Marketing> appliedOptions) {
+    private Optional<Marketing> getSixMarketingOptionsForAvailable(OrderInfo orderInfo,
+                                                                   OptionAvailability optionAvailability,
+                                                                   List<Marketing> appliedOptions) {
         Optional<Marketing> sixMarketing = Optional.empty();
 
         boolean isAppliedShift = appliedOptions.stream()
@@ -195,6 +196,7 @@ public class NewUnknownServiceV2 {
                 || Objects.equals(optionAvailability.getIsSixAvailable(), true);
 
         if (isSixAvailable && optionAvailabilityService.checkAvailabilityForOptionSix(orderInfo) && !isAppliedShift) {
+            // выдаст либо sixMarketing, либо Optional.empty()
             sixMarketing = getSixMarketing(orderInfo);
 
             if (sixMarketing.isEmpty()) {
