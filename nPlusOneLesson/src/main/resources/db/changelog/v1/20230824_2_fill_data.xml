@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="20230824_2_fill_data" author="abychkov">
+        <!-- classroom table -->
+        <insert tableName="classroom">
+            <column name="name" value="Math"/>
+        </insert>
+        <insert tableName="classroom">
+            <column name="name" value="History"/>
+        </insert>
+
+        <!-- students table -->
+        <insert tableName="student">
+            <column name="name" value="Alice"/>
+            <column name="address" value="Brussels"/>
+            <column name="classroom_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="student">
+            <column name="name" value="Bob"/>
+            <column name="address" value="Voronezh"/>
+            <column name="classroom_id" valueNumeric="1"/>
+        </insert>
+        <insert tableName="student">
+            <column name="name" value="Vasily"/>
+            <column name="address" value="New Delhi"/>
+            <column name="classroom_id" valueNumeric="2"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -1,0 +1,21 @@
+server.port: 8080
+
+spring:
+  application:
+    name: npo-lesson
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: password
+    driverClassName: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+#    hibernate:
+#      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  h2.console.enabled: true #http://localhost:8080/h2-console/
+  liquibase:
+    change-log: classpath:db/changelog/liquibase-changelog.yml
