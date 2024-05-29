@@ -27,13 +27,6 @@ public class NewUnknownServiceV2 {
     private final OptionAvailabilityService optionAvailabilityService;
     private final OptionCommonsService optionCommonsService;
 
-    // void методы заменить на get
-    // не забывать про NPE (возвращать Optional, если null - выкинуть исключение)
-    // разбить большие методы на подметоды
-    // не пересохранять данные в одну и ту же переменную несколько раз
-    // не ставить условие в начале метода, выносить перед вызовом
-    // методы с логированием - не самый лучший вариант*
-
     public List<GetOrderInfoByClientIdAndOrderIdOption> getOptionsList(Long clientId, OrderInfo orderInfo) {
         List<Marketing> options = getAllOptions(orderInfo);
         List<Marketing> appliedOptions = getAppliedOptions();
@@ -168,7 +161,10 @@ public class NewUnknownServiceV2 {
                 .collect(Collectors.toList());
     }
 
-    private boolean filterOption(OrderInfo orderInfo, OptionAvailability optionAvailability, Boolean isUnpaidOverdueExist, Marketing option) {
+    private boolean filterOption(OrderInfo orderInfo,
+                                 OptionAvailability optionAvailability,
+                                 Boolean isUnpaidOverdueExist,
+                                 Marketing option) {
         return (option.getIsPaid() != null
                 && !option.getIsPaid()
                 && Objects.equals(option.getOption().getOptionType(), OptionType.SHIFT.getId())
@@ -230,7 +226,8 @@ public class NewUnknownServiceV2 {
 
         Optional.of(availabilityOptions)
                 .filter(availabilityOption -> !availabilityOptions.isEmpty())
-                .map(availabilityOption -> responseOptions.addAll(getAvailabilityOptionsForResponse(orderInfo, availabilityOptions)));
+                .map(availabilityOption -> responseOptions
+                        .addAll(getAvailabilityOptionsForResponse(orderInfo, availabilityOptions)));
 
         Optional.of(appliedOptions)
                 .filter(appliedOption -> !appliedOptions.isEmpty())
