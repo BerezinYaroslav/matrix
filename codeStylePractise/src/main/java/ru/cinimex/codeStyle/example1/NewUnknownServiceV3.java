@@ -182,30 +182,35 @@ public class NewUnknownServiceV3 {
         // надо подумать, как убрать, т.к. это просто заглушка для работы стрима
         Marketing mockMarketing = Marketing.builder().build();
 
-        return Optional.of(mockMarketing)
-                .filter(option -> isAvailableSixMarketing(orderInfo, optionAvailability, appliedOptions))
-                .flatMap(option -> {
-                    try {
-                        log.info("Шестерка доступна, ищем подходящую опцию");
-                        var sixOption = marketingClient.getOption(SIX.getTypeCode(),
-                                optionCommonsService.getAmountForOptionTariff(orderInfo));
-                        var sixMarketing = optionCommonsService.getMarketing(orderInfo, sixOption);
+        if (isAvailableSixMarketing(orderInfo, optionAvailability, appliedOptions)) {
+            return getOptionalSixMarketing(orderInfo);
+        } else {
+            log.info("Опция Шестерка недоступна");
+            return Optional.empty();
+        }
 
-                        log.info("Добавляем опцию Шестерка: " + sixMarketing);
-                        return Optional.ofNullable(sixMarketing);
-                    } catch (RuntimeException e) {
-                        log.error("Ошибка при обработке опции Шестерка", e);
-                        return Optional.empty();
-                    }
-                })
-                .or(() -> {
-                    log.info("Опция Шестерка недоступна");
-                    return Optional.empty();
-                });
+//        return Optional.of(mockMarketing)
+//                .filter(option -> isAvailableSixMarketing(orderInfo, optionAvailability, appliedOptions))
+//                .flatMap(option -> {
+//                    try {
+//                        log.info("Шестерка доступна, ищем подходящую опцию");
+//                        var sixOption = marketingClient.getOption(SIX.getTypeCode(),
+//                                optionCommonsService.getAmountForOptionTariff(orderInfo));
+//                        var sixMarketing = optionCommonsService.getMarketing(orderInfo, sixOption);
+//
+//                        log.info("Добавляем опцию Шестерка: " + sixMarketing);
+//                        return Optional.ofNullable(sixMarketing);
+//                    } catch (RuntimeException e) {
+//                        log.error("Ошибка при обработке опции Шестерка", e);
+//                        return Optional.empty();
+//                    }
+//                })
+//                .or(() -> {
+//                    log.info("Опция Шестерка недоступна");
+//                    return Optional.empty();
+//                });
 
-//        if ((optionAvailability == null || Objects.equals(optionAvailability.getIsSixAvailable(), true))
-//                && optionAvailabilityService.checkAvailabilityForOptionSix(orderInfo)
-//                && !isAppliedShift) {
+//        if (isAvailableSixMarketing(orderInfo, optionAvailability, appliedOptions)) {
 //            try {
 //                log.info("Шестерка доступна, ищем подходящую опцию");
 //                var sixOption = marketingClient.getOption(SIX.getTypeCode(),
@@ -213,14 +218,30 @@ public class NewUnknownServiceV3 {
 //                var sixMarketing = optionCommonsService.getMarketing(orderInfo, sixOption);
 //
 //                log.info("Добавляем опцию Шестерка: " + sixMarketing);
-//                availabilityOptions.add(sixMarketing);
+//                return Optional.ofNullable(sixMarketing);
 //            } catch (RuntimeException e) {
 //                log.error("Ошибка при обработке опции Шестерка", e);
-//                e.printStackTrace();
+//                return Optional.empty();
 //            }
 //        } else {
 //            log.info("Опция Шестерка недоступна");
+//            return Optional.empty();
 //        }
+    }
+
+    private Optional<Marketing> getOptionalSixMarketing(OrderInfo orderInfo) {
+        try {
+            log.info("Шестерка доступна, ищем подходящую опцию");
+            var sixOption = marketingClient.getOption(SIX.getTypeCode(),
+                    optionCommonsService.getAmountForOptionTariff(orderInfo));
+            var sixMarketing = optionCommonsService.getMarketing(orderInfo, sixOption);
+
+            log.info("Добавляем опцию Шестерка: " + sixMarketing);
+            return Optional.ofNullable(sixMarketing);
+        } catch (RuntimeException e) {
+            log.error("Ошибка при обработке опции Шестерка", e);
+            return Optional.empty();
+        }
     }
 
     private boolean isAvailableSixMarketing(OrderInfo orderInfo,
